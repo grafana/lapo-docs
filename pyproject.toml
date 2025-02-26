@@ -1,7 +1,7 @@
 [project]
 name = "llm-docs-sync-agents"
 version = "0.1.0"
-description = "Default template for PDM package"
+description = ""
 authors = [
     {name = "GrafanaLabs", email = "esteban.beltran@grafana.com"},
 ]
@@ -13,3 +13,10 @@ license = {text = "Apache2"}
 
 [tool.pdm]
 distribution = false
+
+[tool.ruff]
+fix = true
+unsafe-fixes = true
+line-length = 120
+
+
