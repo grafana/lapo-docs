@@ -1,0 +1,15 @@
+[project]
+name = "llm-docs-sync-agents"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "GrafanaLabs", email = "esteban.beltran@grafana.com"},
+]
+dependencies = []
+requires-python = "==3.12.*"
+readme = "README.md"
+license = {text = "Apache2"}
+
+
+[tool.pdm]
+distribution = false
