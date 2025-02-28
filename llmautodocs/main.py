@@ -2,16 +2,12 @@ import langroid.language_models as lm
 import langroid as lr
 from llmautodocs.config.llmconfig import llm_config
 from langroid.language_models import Role, LLMMessage
+from llmautodocs.code_agent.code_agent import CodeChangeAnalysisAgent
 
 
 def main():
-    # llm = lm.OpenAIGPT(llm_config)
-    agent = lr.ChatAgent(lr.ChatAgentConfig(llm=llm_config))
-    task = lr.Task(agent, interactive=True)
+    llm = lm.OpenAIGPT(llm_config)
 
-    task.run()
-# messages = [
-#     LLMMessage(content="You are a helpful assistant", role=Role.SYSTEM),
-#     LLMMessage(content="What is the capital of Ontario?", role=Role.USER),
-# ]
-# response = llm.chat(messages, max_tokens=50)
+    agent = CodeChangeAnalysisAgent(llm)
+    result = agent.analyze_diff("diff_content")
+    print(result)
