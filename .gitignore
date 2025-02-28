@@ -1,1 +1,5 @@
 .pdm-python
+.aider*
+__pycache__
+.pdm-python
+.ropeproject
