@@ -1,20 +1,15 @@
+[project]
+name = "llm-auto-update-docs"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic-ai>=0.0.31",
+]
+
 [tool.ruff]
 fix = true
 unsafe-fixes = true
 line-length = 120
-
-[tool.pdm]
-distribution = false
-
-[project]
-name = "llm-auto-update-docs"
-version = "0.1.0"
-description = "Default template for PDM package"
-authors = [
-    {name = "GrafanaLabs", email = "esteban.beltran@grafana.com"},
-]
-dependencies = ["langroid[litellm]>=0.42.10", "atomic-agents>=1.0.23", "instructor[google-generativeai]>=1.7.2"]
-requires-python = "==3.12.*"
-readme = "README.md"
-license = {text = "Apache2"}
 
