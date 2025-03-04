@@ -1,6 +1,6 @@
 import subprocess
 from pydantic import BaseModel
-from typing import List
+from typing import List, TypedDict
 import os
 import hashlib
 import re
@@ -20,6 +20,12 @@ class CodeChange(BaseModel):
     patch_diff: str
 
 
+class PRFileChange(TypedDict):
+    file_path: str
+    patch: str
+    file_full_contents: str
+
+
 pr_agent = Agent(
     GeminiModel('gemini-2.0-flash'),
     deps_type=str,
@@ -33,7 +39,7 @@ pr_agent = Agent(
 
 
 @pr_agent.tool
-async def get_pr(ctx: RunContext[str], pr_url: str) -> List[dict]:
+async def get_pr(ctx: RunContext[str], pr_url: str) -> List[PRFileChange]:
     """Get PR changes from GitHub API"""
     match = re.search(r"github.com/(.+)/(.+)/pull/(\d+)", pr_url)
     if not match:
