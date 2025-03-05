@@ -1,24 +1,23 @@
 import time
-from chromadb import PersistentClient
+from vectordb import Memory
+from rich import print as rprint
 
 import rag
 
 
 def main() -> None:
-    chromadb_client = PersistentClient(path=rag.CHROMADB_DATA_PATH)
-
-    if rag.COLLECTIONS_NAME in chromadb_client.list_collections():
-        chromadb_client.delete_collection(rag.COLLECTIONS_NAME)
-    collection = chromadb_client.create_collection(rag.COLLECTIONS_NAME)
+    memory = Memory(memory_file=rag.VECTORDB_DATA_PATH)
+    memory.clear()
 
     markdown_documents = rag.get_documents(rag.DOCS_PATH)
-    ids = markdown_documents.sorted_keys()
-    print(f"Adding {len(ids)} documents to collection:{'\n'.join(ids)}")
+    print(f"Adding {len(markdown_documents)} documents to collection.")
     st = time.monotonic()
-    collection.add(
-        documents=markdown_documents.sorted_documents(),
-        ids=ids,
-    )
+    for k in markdown_documents:
+        print(k)
+        memory.save(
+            texts=markdown_documents[k],
+            metadata={"file_name": k},
+        )
     et = time.monotonic()
     print(f"Done. Took {et - st:.2f} seconds")
     return None

@@ -11,6 +11,8 @@ dependencies = [
     "chromadb>=0.6.3",
     "logfire>=3.7.0",
     "pydantic-ai[logfire]>=0.0.31",
+    "vectordb2>=0.1.9",
+    "tensorflow-hub>=0.16.1",
 ]
 authors = [
 ]

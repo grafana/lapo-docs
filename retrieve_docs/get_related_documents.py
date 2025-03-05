@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 import json
 from typing import List, TypedDict
-from chromadb import Collection, PersistentClient, ClientAPI
 import logfire
 from pydantic_ai import Agent, RunContext
 from rich import print as rprint
+from vectordb import Memory
 
 import rag
 import testdata
@@ -18,20 +18,19 @@ class Diff(TypedDict):
     diff: str
 
 
-class RelatedDocumentSection(TypedDict):
+class RelatedDocumentationChunk(TypedDict):
     file_name: str
-    content: str
+    chunk_content: str
 
 
 class Changes(TypedDict):
-    original_document: RelatedDocumentSection
+    original_documentation_chunks: RelatedDocumentationChunk
     changes_description: str
 
 
 @dataclass
 class Deps:
-    chromadb_client: ClientAPI
-    chromadb_collection: Collection
+    vectordb_memory: Memory
 
 
 docs_rag_agent = Agent(
@@ -48,37 +47,42 @@ docs_rag_agent = Agent(
 )  # , instrument=True)
 
 
+def question(diffs: List[Diff]) -> str:
+    return f"Retrieve the related documentation chunks that are related to the provided git diffs: ```\n{json.dumps(diffs)}\n```"
+
+
 @docs_rag_agent.tool
-def retrieve(context: RunContext[Deps], diff: Diff) -> List[RelatedDocumentSection]:
-    """Retrieve documentation sections that are related to the provided git diff.
+def retrieve(context: RunContext[Deps], diff: Diff) -> List[RelatedDocumentationChunk]:
+    """Retrieve documentation text chunks that are related to the provided git diff.
 
     Args:
       context: The call context.
       diff: A list of git diff sections inside a file.
     """
-    # TODO: exclude high distance results
-    results = context.deps.chromadb_collection.query(query_texts=[diff["diff"]])
-    if results["documents"] is None or not results["documents"]:
+    # TODO: exclude low distance results
+    results = context.deps.vectordb_memory.search(diff["diff"], unique=True)
+    if not results:
         raise ValueError("No related documents found")
-    assert len(results["documents"]) == 1, "Only one result expected"
 
-    ret: List[RelatedDocumentSection] = []
-    for i, doc in enumerate(results["documents"][0]):
-        ret.append({"content": doc, "file_name": results["ids"][0][i]})
-    rprint(ret)
+    ret: List[RelatedDocumentationChunk] = []
+    rprint("vector db results", results)
+    for chunk in results:
+        ret.append(
+            {
+                "chunk_content": chunk["chunk"],
+                "file_name": chunk["metadata"]["file_name"],
+            }
+        )
+    rprint("final result for llm", ret)
     return ret
 
 
 def run_agent(diffs: List[Diff]) -> None:
-    chromadb_client = PersistentClient(path=rag.CHROMADB_DATA_PATH)
-    chromadb_collection = chromadb_client.get_collection(rag.COLLECTIONS_NAME)
-    deps = Deps(
-        chromadb_client=chromadb_client, chromadb_collection=chromadb_collection
-    )
-
-    question = f"Retrieve the related documentation sections that are related to the provided git diffs: ```\n{json.dumps(diffs)}\n```"
-    logfire.info(f"Asking question to agent: {question}")
-    agent_result = docs_rag_agent.run_sync(question, deps=deps)
+    vectordb_memory = Memory(memory_file=rag.VECTORDB_DATA_PATH)
+    deps = Deps(vectordb_memory=vectordb_memory)
+    q = question(diffs)
+    logfire.info(f"Asking question to agent: {q}")
+    agent_result = docs_rag_agent.run_sync(q, deps=deps)
     rprint(agent_result)
 
 

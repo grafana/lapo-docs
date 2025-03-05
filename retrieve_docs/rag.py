@@ -1,9 +1,8 @@
 import os
-from typing import List, OrderedDict
+from typing import Iterator, OrderedDict
 
 DOCS_PATH = os.path.join("..", "..", "plugin-tools", "docusaurus", "docs")
-CHROMADB_DATA_PATH = os.path.join(".data", "chromadb")
-COLLECTIONS_NAME = "documents"
+VECTORDB_DATA_PATH = os.path.join(".data", "vectordb")
 
 
 class Documents:
@@ -18,11 +17,14 @@ class Documents:
     def __getitem__(self, key: str) -> str:
         return self._docs[key]
 
-    def sorted_documents(self) -> List[str]:
-        return list(self._docs.values())
+    def __contains__(self, key) -> bool:
+        return key in self._docs
 
-    def sorted_keys(self) -> List[str]:
-        return list(self._docs.keys())
+    def __len__(self) -> int:
+        return len(self._docs)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._docs)
 
 
 def get_documents(path: str) -> Documents:
