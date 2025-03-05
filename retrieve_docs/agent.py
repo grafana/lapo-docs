@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import json
+import time
 from typing import List, TypedDict
 import logfire
 from pydantic_ai import Agent, RunContext
@@ -34,8 +35,8 @@ class Deps:
 
 
 docs_rag_agent = Agent(
-    "google-gla:gemini-2.0-flash",
-    # "openai:o1",
+    # "google-gla:gemini-2.0-flash",
+    "openai:o1",
     # "openai:gpt-4o",
     deps_type=Deps,
     system_prompt=[
@@ -60,13 +61,13 @@ def retrieve(context: RunContext[Deps], diff: Diff) -> List[RelatedDocumentation
       diff: A list of git diff sections inside a file.
     """
     # TODO: exclude low distance results
-    results = context.deps.vectordb_memory.search(diff["diff"], unique=True)
-    if not results:
+    db_results = context.deps.vectordb_memory.search(diff["diff"], unique=True)
+    if not db_results:
         raise ValueError("No related documents found")
 
     ret: List[RelatedDocumentationChunk] = []
-    rprint("vector db results", results)
-    for chunk in results:
+    rprint("vector db results", db_results)
+    for chunk in db_results:
         ret.append(
             {
                 "chunk_content": chunk["chunk"],
@@ -82,8 +83,11 @@ def run_agent(diffs: List[Diff]) -> None:
     deps = Deps(vectordb_memory=vectordb_memory)
     q = question(diffs)
     logfire.info(f"Asking question to agent: {q}")
+    st = time.monotonic()
     agent_result = docs_rag_agent.run_sync(q, deps=deps)
+    et = time.monotonic()
     rprint(agent_result)
+    logfire.info("Done. Took {took} seconds", took="{:.2f}".format(et - st))
 
 
 def main() -> None:
