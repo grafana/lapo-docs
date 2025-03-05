@@ -1,7 +1,6 @@
 import os
 from typing import Iterator, OrderedDict
 
-DOCS_PATH = os.path.join("..", "..", "plugin-tools", "docusaurus", "docs")
 VECTORDB_DATA_PATH = os.path.join(".data", "vectordb")
 
 

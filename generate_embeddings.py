@@ -1,15 +1,19 @@
+import os
+import sys
 import time
 from vectordb import Memory
-from rich import print as rprint
 
 import rag
 
+DEFAULT_DOCS_PATH = os.path.join("..", "..", "plugin-tools", "docusaurus", "docs")
 
-def main() -> None:
+
+def main(docs_path: str) -> None:
     memory = Memory(memory_file=rag.VECTORDB_DATA_PATH)
     memory.clear()
 
-    markdown_documents = rag.get_documents(rag.DOCS_PATH)
+    print("Loading documents from", docs_path)
+    markdown_documents = rag.get_documents(docs_path)
     print(f"Adding {len(markdown_documents)} documents to collection.")
     st = time.monotonic()
     for k in markdown_documents:
@@ -24,4 +28,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    folder = DEFAULT_DOCS_PATH
+    if len(sys.argv) >= 2:
+        folder = sys.argv[1]
+    main(folder)
