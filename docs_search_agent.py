@@ -1,27 +1,17 @@
 from dataclasses import dataclass
 import json
 import time
-from typing import List, TypedDict
+from typing import List
 import logfire
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, RunContext
 from rich import print as rprint
 from vectordb import Memory
 
+from gitpr_agent import CodeChange
 import rag
-import testdata
 
 logfire.configure(send_to_logfire=False)
-
-
-class Diff(TypedDict):
-    """A diff section inside a file."""
-
-    """Name of the file in the git repository where the diff is located."""
-    file_name: str
-
-    """The content of the git diff."""
-    diff: str
 
 
 class RelatedDocumentationChunk(BaseModel):
@@ -53,7 +43,7 @@ class Deps:
     vectordb_memory: Memory
 
 
-docs_rag_agent = Agent(
+agent = Agent(
     # "google-gla:gemini-2.0-flash",
     "openai:o1",
     # "openai:gpt-4o",
@@ -67,19 +57,21 @@ docs_rag_agent = Agent(
 )  # , instrument=True)
 
 
-def question(diffs: List[Diff]) -> str:
-    return f"Retrieve the related documentation chunks that are related to the provided git diffs: ```\n{json.dumps(diffs)}\n```"
+def question(diffs: List[CodeChange]) -> str:
+    return f"Retrieve the related documentation chunks that are related to the provided git diffs: ```\n{json.dumps([x.model_dump() for x in diffs])}\n```"
 
 
-@docs_rag_agent.tool
-def retrieve(context: RunContext[Deps], diff: Diff) -> List[RelatedDocumentationChunk]:
+@agent.tool
+def retrieve(
+    context: RunContext[Deps], diff: CodeChange
+) -> List[RelatedDocumentationChunk]:
     """Retrieve documentation text chunks that are related to the provided git diff.
 
     Args:
       context: The call context.
       diff: A list of git diff sections inside a file. The results are sorted from most similar to least similar.
     """
-    db_results = context.deps.vectordb_memory.search(diff["diff"], unique=True)
+    db_results = context.deps.vectordb_memory.search(diff.diff_hunk, unique=True)
     if not db_results:
         raise ValueError("No related documents found")
 
@@ -98,20 +90,15 @@ def retrieve(context: RunContext[Deps], diff: Diff) -> List[RelatedDocumentation
     return ret
 
 
-def run_agent(diffs: List[Diff]) -> None:
-    deps = Deps(vectordb_memory=rag.vectordb_memory)
+def deps() -> Deps:
+    return Deps(vectordb_memory=rag.vectordb_memory)
+
+
+def run_agent(diffs: List[CodeChange]) -> None:
     q = question(diffs)
     logfire.info(f"Asking question to agent: {q}")
     st = time.monotonic()
-    agent_result = docs_rag_agent.run_sync(q, deps=deps)
+    agent_result = agent.run_sync(q, deps=deps())
     et = time.monotonic()
     rprint(agent_result)
     logfire.info("Done. Took {took} seconds", took="{:.2f}".format(et - st))
-
-
-def main() -> None:
-    run_agent(testdata.DUMMY_GIT_DIFFS)
-
-
-if __name__ == "__main__":
-    main()
