@@ -9,7 +9,7 @@ from rich import print as rprint
 from vectordb import Memory
 import os
 
-from gitpr_agent import CodeChange
+from gitpr_analyzer_agent import CodeChange
 import rag
 # set CUDA_VISIBLE_DEVICES=1 in env
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"

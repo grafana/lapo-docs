@@ -1,12 +1,12 @@
 import docs_search_agent
-import gitpr_agent
+import gitpr_analyzer_agent
 from rich import print as rprint
 from pydantic_ai.usage import Usage
 
 
 def lapo() -> None:
     q = "return changes for https://github.com/grafana/grafana-plugin-examples/pull/482"
-    gitpr_result = gitpr_agent.pr_agent.run_sync(q)
+    gitpr_result = gitpr_analyzer_agent.pr_agent.run_sync(q)
     rprint("git pr agent result", gitpr_result.data)
 
     q = docs_search_agent.question(gitpr_result.data)
