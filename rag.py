@@ -2,6 +2,7 @@ import os
 from typing import Iterator, OrderedDict
 from vectordb import Memory
 
+DEFAULT_PLUGIN_TOOLS_REPO_PATH = os.path.join("..", "..", "plugin-tools")
 VECTORDB_DATA_PATH = os.path.join(".data", "vectordb")
 vectordb_memory = Memory(memory_file=VECTORDB_DATA_PATH, embeddings="fast")
 
@@ -29,8 +30,17 @@ class Documents:
 
 
 def get_documents(path: str) -> Documents:
+    if not os.path.isdir(path):
+        raise ValueError(f"Path {path} does not exist")
+    if not os.path.isdir(os.path.join(path, ".git")):
+        raise ValueError(f"Path {path} is not a git repository")
+    docusaurus_root = os.path.join(path, "docusaurus", "docs")
+    if not os.path.isdir(docusaurus_root):
+        raise ValueError(
+            f"Path {path} does not contain docusaurus docs, make sure the folder points to the root of the plugin-tools repository."
+        )
     documents = Documents()
-    for root, _, files in os.walk(path):
+    for root, _, files in os.walk(docusaurus_root):
         for file in files:
             if not file.endswith(".md"):
                 continue
