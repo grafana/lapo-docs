@@ -36,7 +36,7 @@ def get_pr_diff_hunk(pr_url: str) -> str:
     )
     # curious name but apparently that's how it's called
     hunk = result.stdout.decode()
-    print(hunk)
+    # print(hunk)
     return hunk
 
 
