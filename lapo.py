@@ -10,6 +10,7 @@ def lapo() -> None:
     rprint("git pr agent result", gitpr_result.data)
 
     q = docs_search_agent.question(gitpr_result.data)
+    print(q)
     docs_search_result = docs_search_agent.agent.run_sync(
         q, deps=docs_search_agent.deps()
     )

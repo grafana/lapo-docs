@@ -20,7 +20,9 @@ class RelatedDocumentationChunk(BaseModel):
     file_name: str = Field(
         description="Name of the file in the documentation git repository where the documentation chunk is located."
     )
-    chunk_content: str = Field(description="The content of the documentation chunk.")
+    chunk_content: str = Field(
+        description="The content of the original documentation chunk."
+    )
     distance: float = Field(
         description="The distance between the provided git diff and the documentation chunk. 0 is the exact match and higher means further apart.",
     )
@@ -29,13 +31,18 @@ class RelatedDocumentationChunk(BaseModel):
 class Changes(BaseModel):
     """A documentation chunk that should be updated for a given code change."""
 
-    original_documentation_chunks: RelatedDocumentationChunk = Field(
+    original_documentation_chunk: RelatedDocumentationChunk = Field(
         description="The original snippet of content that has to be updated. "
         + "This can be used to search for the exact location in the documentation file."
     )
     changes_description: str = Field(
         description="A short description of what has to be changed in order to make the documentation up-to-date."
     )
+    # ??????
+    #updated_chunk_content: str = Field(
+    #    description="The new content of the documentation chunk. "
+    #    + "This is the updated version of the documentation, with the changes described in the `changes_description` field."
+    #)
 
 
 @dataclass
@@ -51,14 +58,15 @@ agent = Agent(
     system_prompt=[
         "You are specialized in finding documentation sections that should be updated for a given code change, provided in the form of a git diff.",
         "Use the `retrieve` tool to get documentation sections that are similar to the provided git diffs using a vector search. The results are sorted from most similar to least similar.",
-        "After retrieving the documents, for each result, return the original snippet of content AS-IS (with no changes), the name of the markdown documentation file where that snippet of content is from and short description of what has to be changed in order to make the documentation up-to-date.",
+        # "After retrieving the documents, for each result, return the original snippet of content AS-IS (with no changes), the name of the markdown documentation file where that snippet of content is from and short description of what has to be changed in order to make the documentation up-to-date.",
     ],
     result_type=List[Changes],
 )  # , instrument=True)
 
 
 def question(diffs: List[CodeChange]) -> str:
-    return f"Retrieve the related documentation chunks that are related to the provided git diffs: ```\n{json.dumps([x.model_dump() for x in diffs])}\n```"
+    j = json.dumps([x.model_dump(include={"diff_hunk"}) for x in diffs])
+    return f"Retrieve the documentation chunks that should be updated when the provided code changes are applied:\n```json\n{j}\n```"
 
 
 @agent.tool
