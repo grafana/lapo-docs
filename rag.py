@@ -3,7 +3,7 @@ from typing import Iterator, OrderedDict
 from vectordb import Memory
 
 VECTORDB_DATA_PATH = os.path.join(".data", "vectordb")
-vectordb_memory = Memory(memory_file=VECTORDB_DATA_PATH)
+vectordb_memory = Memory(memory_file=VECTORDB_DATA_PATH, embeddings="fast")
 
 
 class Documents:
