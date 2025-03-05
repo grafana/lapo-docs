@@ -1,5 +1,5 @@
 from typing import List
-from retrieve_docs.agent import Diff
+from agent import Diff
 
 
 # lapo
