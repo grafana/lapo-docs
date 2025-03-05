@@ -5,6 +5,9 @@ from typing import List
 import logfire
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, RunContext
+from pydantic_ai.models.anthropic import AnthropicModel
+from pydantic_ai.models.gemini import GeminiModel
+from pydantic_ai.models.openai import OpenAIModel
 from rich import print as rprint
 from vectordb import Memory
 import os
@@ -60,8 +63,10 @@ class Deps:
 
 agent = Agent(
     # "google-gla:gemini-2.0-flash",
-    "openai:o1",
-    # "openai:gpt-4o",
+    # "openai:o1",
+    # GeminiModel("gemini-2.0-flash"),
+    # OpenAIModel("o1")
+    AnthropicModel("claude-3-5-sonnet-latest"),
     deps_type=Deps,
     system_prompt=[
         "You are specialized in finding documentation sections that should be updated for a given code change, provided in the form of a git diff.",
