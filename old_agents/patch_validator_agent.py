@@ -19,6 +19,7 @@ validate_patch_agent = Agent(
         'you will objectively evaluate the patch without providing any recommendation'
         'you will not comment in anyway on the files or code in the patch'
         'you must focus in the validity of the git patch format'
+        'the patch will be between ##PATCH-start### and ##PATCH-end###'
     ),
     result_type=str,
 )
