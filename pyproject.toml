@@ -1,17 +1,22 @@
 [project]
 name = "llm-auto-update-docs"
 version = "0.1.0"
-description = "Add your description here"
+description = ""
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = "==3.12.*"
 dependencies = [
+    "PyGithub>=2.6.1",
+    "rich>=13.9.4",
+    "pydantic>=2.10.6",
     "chromadb>=0.6.3",
     "logfire>=3.7.0",
     "pydantic-ai[logfire]>=0.0.31",
 ]
+authors = [
+]
+license = {text = "MIT"}
 
 [tool.ruff]
 fix = true
 unsafe-fixes = true
 line-length = 120
-
