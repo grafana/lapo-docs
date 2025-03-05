@@ -3,6 +3,7 @@ import json
 import time
 from typing import List, TypedDict
 import logfire
+from pydantic import BaseModel, Field
 from pydantic_ai import Agent, RunContext
 from rich import print as rprint
 from vectordb import Memory
@@ -23,29 +24,28 @@ class Diff(TypedDict):
     diff: str
 
 
-class RelatedDocumentationChunk(TypedDict):
+class RelatedDocumentationChunk(BaseModel):
     """A documentation chunk that is semantically similar to a Git diff."""
 
-    """Name of the file in the documentation git repository where the documentation chunk is located."""
-    file_name: str
-
-    """The content of the documentation chunk."""
-    chunk_content: str
-
-    """The distance between the provided git diff and the documentation chunk.
-    0 is the exact match and higher means further apart."""
-    distance: float
+    file_name: str = Field(
+        description="Name of the file in the documentation git repository where the documentation chunk is located."
+    )
+    chunk_content: str = Field(description="The content of the documentation chunk.")
+    distance: float = Field(
+        description="The distance between the provided git diff and the documentation chunk. 0 is the exact match and higher means further apart.",
+    )
 
 
-class Changes(TypedDict):
+class Changes(BaseModel):
     """A documentation chunk that should be updated for a given code change."""
 
-    """The original snippet of content that has to be updated.
-    This can be used to search for the exact location in the documentation file."""
-    original_documentation_chunks: RelatedDocumentationChunk
-
-    """A short description of what has to be changed in order to make the documentation up-to-date."""
-    changes_description: str
+    original_documentation_chunks: RelatedDocumentationChunk = Field(
+        description="The original snippet of content that has to be updated. "
+        + "This can be used to search for the exact location in the documentation file."
+    )
+    changes_description: str = Field(
+        description="A short description of what has to be changed in order to make the documentation up-to-date."
+    )
 
 
 @dataclass
@@ -87,13 +87,13 @@ def retrieve(context: RunContext[Deps], diff: Diff) -> List[RelatedDocumentation
     rprint("vector db results", db_results)
     for chunk in db_results:
         ret.append(
-            {
-                "chunk_content": chunk["chunk"],
-                "file_name": chunk["metadata"]["file_name"],
-                "distance": float(chunk["distance"]),
-            }
+            RelatedDocumentationChunk(
+                chunk_content=chunk["chunk"],
+                file_name=chunk["metadata"]["file_name"],
+                distance=float(chunk["distance"]),
+            )
         )
-    ret = sorted(ret, key=lambda x: x["distance"])
+    ret = sorted(ret, key=lambda x: x.distance)
     rprint("final result for llm", ret)
     return ret
 
