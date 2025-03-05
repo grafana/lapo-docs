@@ -10,8 +10,7 @@ from vectordb import Memory
 import rag
 import testdata
 
-# 'if-token-present' means nothing will be sent (and the example will work) if you don't have logfire configured
-logfire.configure(send_to_logfire="if-token-present")
+logfire.configure(send_to_logfire=False)
 
 
 class Diff(TypedDict):
@@ -61,7 +60,7 @@ docs_rag_agent = Agent(
     deps_type=Deps,
     system_prompt=[
         "You are specialized in finding documentation sections that should be updated for a given code change, provided in the form of a git diff.",
-        "Use the `retrieve` tool to get documentation sections that are similar to the provided git diffs using a vector search.",
+        "Use the `retrieve` tool to get documentation sections that are similar to the provided git diffs using a vector search. The results are sorted from most similar to least similar.",
         "After retrieving the documents, for each result, return the original snippet of content AS-IS (with no changes), the name of the markdown documentation file where that snippet of content is from and short description of what has to be changed in order to make the documentation up-to-date.",
     ],
     result_type=List[Changes],
@@ -78,9 +77,8 @@ def retrieve(context: RunContext[Deps], diff: Diff) -> List[RelatedDocumentation
 
     Args:
       context: The call context.
-      diff: A list of git diff sections inside a file. The results are returned from most similar to least similar.
+      diff: A list of git diff sections inside a file. The results are sorted from most similar to least similar.
     """
-    # TODO: exclude low distance results
     db_results = context.deps.vectordb_memory.search(diff["diff"], unique=True)
     if not db_results:
         raise ValueError("No related documents found")
@@ -101,8 +99,7 @@ def retrieve(context: RunContext[Deps], diff: Diff) -> List[RelatedDocumentation
 
 
 def run_agent(diffs: List[Diff]) -> None:
-    vectordb_memory = Memory(memory_file=rag.VECTORDB_DATA_PATH)
-    deps = Deps(vectordb_memory=vectordb_memory)
+    deps = Deps(vectordb_memory=rag.vectordb_memory)
     q = question(diffs)
     logfire.info(f"Asking question to agent: {q}")
     st = time.monotonic()

@@ -1,7 +1,9 @@
 import os
 from typing import Iterator, OrderedDict
+from vectordb import Memory
 
 VECTORDB_DATA_PATH = os.path.join(".data", "vectordb")
+vectordb_memory = Memory(memory_file=VECTORDB_DATA_PATH)
 
 
 class Documents:

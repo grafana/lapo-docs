@@ -1,7 +1,6 @@
 import os
 import sys
 import time
-from vectordb import Memory
 
 import rag
 
@@ -9,8 +8,7 @@ DEFAULT_DOCS_PATH = os.path.join("..", "..", "plugin-tools", "docusaurus", "docs
 
 
 def main(docs_path: str) -> None:
-    memory = Memory(memory_file=rag.VECTORDB_DATA_PATH)
-    memory.clear()
+    rag.vectordb_memory.clear()
 
     print("Loading documents from", docs_path)
     markdown_documents = rag.get_documents(docs_path)
@@ -18,7 +16,7 @@ def main(docs_path: str) -> None:
     st = time.monotonic()
     for k in markdown_documents:
         print(k)
-        memory.save(
+        rag.vectordb_memory.save(
             texts=markdown_documents[k],
             metadata={"file_name": k},
         )
