@@ -1,11 +1,11 @@
 import docs_search_agent
-import gitpr_analyzer_agent
+import git_pr
 from rich import print as rprint
 from pydantic_ai.usage import Usage
 
 
 def lapo() -> None:
-    pr_diff_hunk = gitpr_analyzer_agent.get_pr_diff_hunk("https://github.com/grafana/grafana-plugin-examples/pull/482")
+    pr_diff_hunk = git_pr.get_pr_diff_hunk("https://github.com/grafana/grafana-plugin-examples/pull/482")
     rprint(pr_diff_hunk)
     q = docs_search_agent.question(pr_diff_hunk)
     print(q)
