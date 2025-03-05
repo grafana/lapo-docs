@@ -69,8 +69,8 @@ agent = Agent(
     # "google-gla:gemini-2.0-flash",
     # "openai:o1",
     # GeminiModel("gemini-2.0-flash"),
-    OpenAIModel("o1"),
-    # AnthropicModel("claude-3-5-sonnet-latest"),
+    # OpenAIModel("o1"),
+    AnthropicModel("claude-3-5-sonnet-latest"),
     deps_type=Deps,
     system_prompt=[
         "You are specialized in finding documentation sections that should be updated for a given code change, provided in the form of a git diff."
