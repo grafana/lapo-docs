@@ -4,3 +4,5 @@ __pycache__
 .pdm-python
 .ropeproject
 logs
+.data
+__pycache__

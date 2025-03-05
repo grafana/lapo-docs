@@ -5,7 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "pydantic-ai>=0.0.31",
+    "chromadb>=0.6.3",
+    "logfire>=3.7.0",
+    "pydantic-ai[logfire]>=0.0.31",
 ]
 
 [tool.ruff]
