@@ -3,6 +3,7 @@ from rich import print as rprint
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, RunContext, ModelRetry
 from pydantic_ai.models.gemini import GeminiModel
+from pydantic_ai.models.anthropic import AnthropicModel
 import os
 import tempfile
 import subprocess
@@ -138,7 +139,10 @@ class DocumentContent(TypedDict):
 
 
 generate_pr_agent = Agent(
-    GeminiModel('gemini-2.0-flash'),
+    # GeminiModel('gemini-2.0-pro-exp-02-05'),
+    AnthropicModel('claude-3-5-sonnet-latest'),
+
+    # GeminiModel('gemini-2.0-flash'),
     retries=3,
     deps_type=None,
     system_prompt=(
