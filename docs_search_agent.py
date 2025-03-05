@@ -15,17 +15,37 @@ logfire.configure(send_to_logfire="if-token-present")
 
 
 class Diff(TypedDict):
+    """A diff section inside a file."""
+
+    """Name of the file in the git repository where the diff is located."""
     file_name: str
+
+    """The content of the git diff."""
     diff: str
 
 
 class RelatedDocumentationChunk(TypedDict):
+    """A documentation chunk that is semantically similar to a Git diff."""
+
+    """Name of the file in the documentation git repository where the documentation chunk is located."""
     file_name: str
+
+    """The content of the documentation chunk."""
     chunk_content: str
+
+    """The distance between the provided git diff and the documentation chunk.
+    0 is the exact match and higher means further apart."""
+    distance: float
 
 
 class Changes(TypedDict):
+    """A documentation chunk that should be updated for a given code change."""
+
+    """The original snippet of content that has to be updated.
+    This can be used to search for the exact location in the documentation file."""
     original_documentation_chunks: RelatedDocumentationChunk
+
+    """A short description of what has to be changed in order to make the documentation up-to-date."""
     changes_description: str
 
 
@@ -58,7 +78,7 @@ def retrieve(context: RunContext[Deps], diff: Diff) -> List[RelatedDocumentation
 
     Args:
       context: The call context.
-      diff: A list of git diff sections inside a file.
+      diff: A list of git diff sections inside a file. The results are returned from most similar to least similar.
     """
     # TODO: exclude low distance results
     db_results = context.deps.vectordb_memory.search(diff["diff"], unique=True)
@@ -72,8 +92,10 @@ def retrieve(context: RunContext[Deps], diff: Diff) -> List[RelatedDocumentation
             {
                 "chunk_content": chunk["chunk"],
                 "file_name": chunk["metadata"]["file_name"],
+                "distance": float(chunk["distance"]),
             }
         )
+    ret = sorted(ret, key=lambda x: x["distance"])
     rprint("final result for llm", ret)
     return ret
 
