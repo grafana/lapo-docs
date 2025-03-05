@@ -98,7 +98,7 @@ def retrieve(
                 chunk_content=chunk["chunk"],
                 file_name=chunk["metadata"]["file_name"],
                 distance=float(chunk["distance"]),
-                diff=diff["diff"],
+                diff=diff.diff_hunk,
             )
         )
     ret = sorted(ret, key=lambda x: x.distance)
