@@ -4,7 +4,7 @@ from typing import List, TypedDict
 import os
 import hashlib
 import re
-from github import Github
+from github import Github, Auth
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.gemini import GeminiModel
 from rich import print as rprint
@@ -46,13 +46,16 @@ async def get_pr(ctx: RunContext[str], pr_url: str) -> List[PRFileChange]:
         raise ValueError("Invalid PR URL")
 
     owner, repo_name, pr_number = match.groups()
-    g = Github(auth=os.getenv('GITHUB_TOKEN'))
+    tok = os.getenv("GITHUB_TOKEN")
+    if tok is None:
+        raise ValueError("GITHUB_TOKEN environment variable not set")
+    g = Github(auth=Auth.Token(tok))
     repo = g.get_repo(f"{owner}/{repo_name}")
     pull = repo.get_pull(int(pr_number))
 
     clone_path = clone_or_update_github_repo(repo.clone_url, pull.head.ref)
 
-    diff = []
+    diff: List[PRFileChange] = []
     for file in pull.get_files():
         file_path = os.path.join(clone_path, file.filename)
         try:
