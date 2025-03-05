@@ -139,14 +139,12 @@ class DocumentContent(TypedDict):
 
 
 generate_pr_agent = Agent(
-    # GeminiModel('gemini-2.0-pro-exp-02-05'),
     AnthropicModel('claude-3-5-sonnet-latest'),
-
-    # GeminiModel('gemini-2.0-flash'),
+    # GeminiModel('gemini-2.0-flash'), # gemini sucks at generating patches
     retries=3,
     deps_type=None,
     system_prompt=(
-        'You are an expert system on generating pull requests for documentation based on code changes',
+        'You are an expert system on generating git patches for documentation based on code changes',
         'You will analyze the presented list of POSSIBLE affected documents by a code change (diff)'
         'think carefully if the code change (diff) affects the document related  content'
         'you can use the full document content to better decide'
@@ -174,33 +172,31 @@ async def get_document(ctx: RunContext[str], file_name: str) -> DocumentContent:
 @generate_pr_agent.tool(retries=10)
 async def validate_patch(ctx: RunContext[str], patch: str) -> str:
     print("validate_patch", patch)
-    # write patch to /home/test.patch
-    with open("/home/academo/test.patch", "w") as f:
-        print("writing patch to /home/academo/test.patch")
-        f.write(patch)
-
     # store patch in a temporal file
     with tempfile.NamedTemporaryFile("w") as f:
         f.write(patch)
         f.flush()
         print("patch", f.name)
         try:
-            subprocess.check_output(["git", "apply", "--check", f.name],
-                                    cwd=DEFAULT_DOCS_PATH).decode("utf-8")
+            result = subprocess.run(["git", "apply", "--check", f.name],
+                                    cwd=DEFAULT_DOCS_PATH,
+                                    capture_output=True,
+                                    text=True,
+                                    check=True)
+            print("patch valid")
             return "OK"
         except Exception as e:
-            print("error with patch, checking with agent", e.output)
-            r = await validate_patch_agent.run(
-                'determine why this patch is invalid\n\n' + patch
-            )
-            print("patch validator says", r.data)
-            if "PATCH_VALID" in r.data:
-                return "OK"
-            raise ModelRetry(r.data)
+            print("error with patch", e.stderr)
+            raise ModelRetry("error validating patch: " + str(e.stderr))
 
 if __name__ == "__main__":
     response = generate_pr_agent.run_sync(
         possible_changes,
     )
     rprint(response)
+
+    with open("/home/academo/test.patch", "w") as f:
+        print("writing patch to /home/academo/test.patch")
+        f.write(response.data.patch_diff)
+
     pass
