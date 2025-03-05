@@ -7,9 +7,13 @@ from pydantic import BaseModel, Field
 from pydantic_ai import Agent, RunContext
 from rich import print as rprint
 from vectordb import Memory
+import os
 
 import rag
 import testdata
+# set CUDA_VISIBLE_DEVICES=1 in env
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 
 logfire.configure(send_to_logfire=False)
 
@@ -33,6 +37,9 @@ class RelatedDocumentationChunk(BaseModel):
     chunk_content: str = Field(description="The content of the documentation chunk.")
     distance: float = Field(
         description="The distance between the provided git diff and the documentation chunk. 0 is the exact match and higher means further apart.",
+    )
+    diff: str = Field(
+         description="The git diff that was originally modified and affected this documentation chunk."
     )
 
 
@@ -91,6 +98,7 @@ def retrieve(context: RunContext[Deps], diff: Diff) -> List[RelatedDocumentation
                 chunk_content=chunk["chunk"],
                 file_name=chunk["metadata"]["file_name"],
                 distance=float(chunk["distance"]),
+                diff=diff["diff"],
             )
         )
     ret = sorted(ret, key=lambda x: x.distance)
