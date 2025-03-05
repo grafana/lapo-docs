@@ -1,5 +1,5 @@
 from typing import List
-from agent import Diff
+from docs_search_agent import Diff
 
 
 # lapo
