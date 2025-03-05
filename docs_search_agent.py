@@ -62,7 +62,7 @@ docs_rag_agent = Agent(
     system_prompt=[
         "You are specialized in finding documentation sections that should be updated for a given code change, provided in the form of a git diff.",
         "Use the `retrieve` tool to get documentation sections that are similar to the provided git diffs using a vector search.",
-        # "After retrieving the documents, for each result, return the original snippet of content that has to be updated AS-IS (with no changes), the name of the markdown documentation file where that snippet of content is from and short description of what has to be changed in order to make the documentation up-to-date.",
+        "After retrieving the documents, for each result, return the original snippet of content AS-IS (with no changes), the name of the markdown documentation file where that snippet of content is from and short description of what has to be changed in order to make the documentation up-to-date.",
     ],
     result_type=List[Changes],
 )  # , instrument=True)
