@@ -9,37 +9,11 @@ from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.gemini import GeminiModel
 from rich import print as rprint
 
-
-class CodeChange(BaseModel):
-    file_path: str
-    diff_hunk: str
-    start_line: int
-    end_line: int
-    ten_lines_before_patch: List[str]
-    ten_lines_after_patch: List[str]
-    patch_diff: str
+DIFF_CONTEXT_SIZE = 32
+MAIN_BRANCH = "main"
 
 
-class PRFileChange(TypedDict):
-    file_path: str
-    patch: str
-    file_full_contents: str
-
-
-pr_agent = Agent(
-    GeminiModel('gemini-2.0-flash'),
-    deps_type=str,
-    system_prompt=(
-        'You are an expert at parsing git diffs and PRs (pull requests)',
-        'Use the get_pr tool to get the PR changes and the file full contents',
-        'return a list of code changes with the file path, diff hunk, start line, end line, and 10 lines before and 10 lines after the change'
-    ),
-    result_type=List[CodeChange],
-)
-
-
-@pr_agent.tool
-async def get_pr(ctx: RunContext[str], pr_url: str) -> List[PRFileChange]:
+def get_pr_diff_hunk(pr_url: str) -> str:
     """Get PR changes from GitHub API"""
     match = re.search(r"github.com/(.+)/(.+)/pull/(\d+)", pr_url)
     if not match:
@@ -54,28 +28,21 @@ async def get_pr(ctx: RunContext[str], pr_url: str) -> List[PRFileChange]:
     pull = repo.get_pull(int(pr_number))
 
     clone_path = clone_or_update_github_repo(repo.clone_url, pull.head.ref)
-
-    diff: List[PRFileChange] = []
-    for file in pull.get_files():
-        file_path = os.path.join(clone_path, file.filename)
-        try:
-            with open(file_path, "r") as f:
-                file_contents = f.read()
-        except FileNotFoundError:
-            file_contents = ""
-
-        diff.append(
-            {
-                "file_path": file.filename,
-                "patch": file.patch,
-                "file_full_contents": file_contents
-            }
-        )
-
-    return diff
+    result = subprocess.run(
+        ["git", "-C", clone_path, "diff", f"-U{DIFF_CONTEXT_SIZE}", f"{MAIN_BRANCH}..."],
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+        check=True,
+    )
+    # curious name but apparently that's how it's called
+    hunk = result.stdout.decode()
+    print(hunk)
+    return hunk
 
 
-def clone_or_update_github_repo(github_url: str, branch: str, base_path: str = None) -> str:
+def clone_or_update_github_repo(
+    github_url: str, branch: str, base_path: str | None = None
+) -> str:
     """
     Clones a GitHub repository in a specific branch to a deterministic path or updates it if exists.
 
@@ -105,39 +72,46 @@ def clone_or_update_github_repo(github_url: str, branch: str, base_path: str = N
     try:
         if not os.path.exists(repo_path):
             # Clone the repository if it doesn't exist
-            subprocess.check_call([
-                'git',
-                'clone',
-                '--depth=1',
-                '--branch', branch,
-                github_url,
-                repo_path
-            ], stderr=subprocess.STDOUT)
+            subprocess.run(
+                [
+                    "git",
+                    "clone",
+                    # "--depth=1",
+                    "--branch",
+                    branch,
+                    github_url,
+                    repo_path,
+                ],
+                stderr=subprocess.STDOUT,
+                check=True,
+            )
         else:
             # If repository exists, fetch and reset to origin/branch
-            subprocess.check_call([
-                'git',
-                '-C', repo_path,
-                'fetch',
-                'origin',
-                branch
-            ], stderr=subprocess.STDOUT)
+            subprocess.run(
+                ["git", "-C", repo_path, "fetch", "origin", branch],
+                stderr=subprocess.STDOUT,
+                check=True,
+            )
 
-            subprocess.check_call([
-                'git',
-                '-C', repo_path,
-                'reset',
-                '--hard',
-                f'origin/{branch}'
-            ], stderr=subprocess.STDOUT)
+            subprocess.run(
+                ["git", "-C", repo_path, "reset", "--hard", f"origin/{branch}"],
+                stderr=subprocess.STDOUT,
+                check=True,
+            )
 
             # Clean any untracked files
-            subprocess.check_call([
-                'git',
-                '-C', repo_path,
-                'clean',
-                '-fd'
-            ], stderr=subprocess.STDOUT)
+            subprocess.run(
+                ["git", "-C", repo_path, "clean", "-fd"],
+                stderr=subprocess.STDOUT,
+                check=True,
+            )
+
+        # Fetch main so we can diff against it
+        subprocess.run(
+            ["git", "-C", repo_path, "fetch", "origin", f"{MAIN_BRANCH}:{MAIN_BRANCH}"],
+            stderr=subprocess.STDOUT,
+            check=True,
+        )
 
         return repo_path
 
@@ -145,13 +119,6 @@ def clone_or_update_github_repo(github_url: str, branch: str, base_path: str = N
         # Clean up the directory if clone fails and it was a new clone
         if os.path.exists(repo_path) and not os.listdir(repo_path):
             import shutil
+
             shutil.rmtree(repo_path)
         raise e
-
-
-if __name__ == "__main__":
-    # changes = await analyze_pr("https://github.com/owner/repo/pull/123")
-    result = pr_agent.run_sync("return changes for https://github.com/grafana/grafana-plugin-examples/pull/482")
-    # pprint.PrettyPrinter(indent=4).pprint(result)
-    rprint(result)
-    pass

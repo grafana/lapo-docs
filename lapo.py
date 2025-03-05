@@ -5,11 +5,9 @@ from pydantic_ai.usage import Usage
 
 
 def lapo() -> None:
-    q = "return changes for https://github.com/grafana/grafana-plugin-examples/pull/482"
-    gitpr_result = gitpr_analyzer_agent.pr_agent.run_sync(q)
-    rprint("git pr agent result", gitpr_result.data)
-
-    q = docs_search_agent.question(gitpr_result.data)
+    pr_diff_hunk = gitpr_analyzer_agent.get_pr_diff_hunk("https://github.com/grafana/grafana-plugin-examples/pull/482")
+    rprint(pr_diff_hunk)
+    q = docs_search_agent.question(pr_diff_hunk)
     print(q)
     docs_search_result = docs_search_agent.agent.run_sync(
         q, deps=docs_search_agent.deps()

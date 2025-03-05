@@ -2,6 +2,9 @@ import os
 from typing import Iterator, OrderedDict
 from vectordb import Memory
 
+# use CUDA
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 DEFAULT_PLUGIN_TOOLS_REPO_PATH = os.path.join("..", "..", "plugin-tools")
 VECTORDB_DATA_PATH = os.path.join(".data", "vectordb")
 vectordb_memory = Memory(memory_file=VECTORDB_DATA_PATH, embeddings="fast")
