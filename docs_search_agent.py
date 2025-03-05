@@ -11,6 +11,7 @@ import os
 
 from gitpr_analyzer_agent import CodeChange
 import rag
+
 # set CUDA_VISIBLE_DEVICES=1 in env
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
@@ -31,7 +32,7 @@ class RelatedDocumentationChunk(BaseModel):
         description="The distance between the provided git diff and the documentation chunk. 0 is the exact match and higher means further apart.",
     )
     diff: str = Field(
-         description="The git diff that was originally modified and affected this documentation chunk."
+        description="The git diff that was originally modified and affected this documentation chunk."
     )
 
 
@@ -46,10 +47,10 @@ class Changes(BaseModel):
         description="A short description of what has to be changed in order to make the documentation up-to-date."
     )
     # ??????
-    #updated_chunk_content: str = Field(
+    # updated_chunk_content: str = Field(
     #    description="The new content of the documentation chunk. "
     #    + "This is the updated version of the documentation, with the changes described in the `changes_description` field."
-    #)
+    # )
 
 
 @dataclass
