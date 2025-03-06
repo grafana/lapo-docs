@@ -111,7 +111,7 @@ def create_pr_from_patch(
 
     description = inspect.cleandoc(f"""
 
-        This is an automated pull request created by the [LapoDocs](https://github.com/llm-auto-update-docs) tool.
+        This is an automated pull request created by the [LapoDocs](https://github.com/grafana/llm-auto-update-docs) tool.
 
         ## Reasoning for the changes:
 
