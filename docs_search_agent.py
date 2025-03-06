@@ -14,7 +14,7 @@ from vectordb import Memory
 import rag
 
 
-logfire.configure(send_to_logfire=False)
+logfire.configure(send_to_logfire='if-token-present')
 
 
 class RelatedDocumentationChunk(BaseModel):
@@ -131,12 +131,3 @@ def find_relevant_documentation(
 def deps() -> Deps:
     return Deps(vectordb_memory=rag.vectordb_memory)
 
-
-def run_agent(diffs: List[PRFileChange]) -> None:
-    q = question(diffs)
-    logfire.info(f"Asking question to agent: {q}")
-    st = time.monotonic()
-    agent_result = agent.run_sync(q, deps=deps())
-    et = time.monotonic()
-    rprint(agent_result)
-    logfire.info("Done. Took {took} seconds", took="{:.2f}".format(et - st))

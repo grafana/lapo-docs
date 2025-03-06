@@ -26,7 +26,7 @@ def scrubbing_callback(m: logfire.ScrubMatch):
         return m.value
 
 
-logfire.configure(scrubbing=logfire.ScrubbingOptions(callback=scrubbing_callback))
+logfire.configure(send_to_logfire="if-token-present", scrubbing=logfire.ScrubbingOptions(callback=scrubbing_callback))
 
 
 class PullRequestContent(BaseModel):
