@@ -1,3 +1,4 @@
+import inspect
 import os
 import subprocess
 import tempfile
@@ -12,12 +13,13 @@ def create_pr_from_patch(
         repo_path: str = None,
         repo_url: str = None,
         branch_name: str = None,
-        description: str = None,
+        reasoning: str = None,
         title: str = None,
-        patch: str = None
+        patch: str = None,
+        triggered_by: str = None
 ):
 
-    if repo_url is None or patch is None or description is None:
+    if repo_url is None or patch is None or reasoning is None:
         raise ValueError("repoUrl, patch and description must be provided")
 
     # Extract owner and repo name from repo URL
@@ -29,7 +31,7 @@ def create_pr_from_patch(
     owner = owner_repo_match.group(1)
     repo = owner_repo_match.group(2)
 
-    if repo_path is not None and repo_path != "":
+    if repo_path is not None or repo_path == "":
         # check repoPath exists
         if not os.path.exists(repo_path):
             raise ValueError("repoPath does not exist")
@@ -46,12 +48,8 @@ def create_pr_from_patch(
         random_name = os.urandom(16).hex()
         branch_name = f"lapo-docs-{random_name}"
 
-    print("repo_path", repo_path)
-    print("repo_url", repo_url)
-    print("branch_name", branch_name)
-    print("description", description)
-    print("title", title)
-    print("patch", patch)
+    if triggered_by is None or triggered_by == "":
+        triggered_by = "No information provided"
 
     # store patch in a temporal file
     with tempfile.NamedTemporaryFile("w") as f:
@@ -80,7 +78,7 @@ def create_pr_from_patch(
                                     check=True)
             print("patch applied", result)
 
-            result = subprocess.run(["git", "commit", "-a", "-m", description],
+            result = subprocess.run(["git", "commit", "-a", "-m", reasoning],
                                     cwd=repo_path,
                                     capture_output=True,
                                     check=True)
@@ -105,7 +103,24 @@ def create_pr_from_patch(
         "Accept": "application/vnd.github.v3+json"
     }
 
-    pr_title = title if title is not None else 'LapoDocs: Update docs from changes in related code'
+    pr_title = "LapoDocs: "
+    if title is not None:
+        pr_title += title
+    else:
+        pr_title += "Update docs from changes in related code"
+
+    description = inspect.cleandoc(f"""
+
+        This is an automated pull request created by the [LapoDocs](https://github.com/llm-auto-update-docs) tool.
+
+        ## Reasoning for the changes:
+
+        {reasoning}
+
+        ## PR that triggered these changes:
+
+        {triggered_by}
+""")
 
     pr_data = {
         "title": pr_title,

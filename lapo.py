@@ -8,9 +8,9 @@ from create_pr_from_patch import create_pr_from_patch
 
 
 def lapo() -> None:
-    pr_diff_hunk = git_pr.get_pr_diff_hunk(
-        "https://github.com/grafana/grafana-plugin-examples/pull/482"
-    )
+    pr_link = "https://github.com/grafana/grafana-plugin-examples/pull/482"
+
+    pr_diff_hunk = git_pr.get_pr_diff_hunk(pr_link)
     rprint(pr_diff_hunk)
 
     docs_search_response = docs_search_agent.agent.run_sync(
@@ -29,9 +29,10 @@ def lapo() -> None:
 
     pr_response = create_pr_from_patch(
         repo_url="https://github.com/grafana/plugin-tools/",
-        description=patch_agent_response.data.reasoning,
+        reasoning=patch_agent_response.data.reasoning,
         title=patch_agent_response.data.title,
         patch=patch,
+        triggered_by=pr_link,
     )
 
     rprint(pr_response)
