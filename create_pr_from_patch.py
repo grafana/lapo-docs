@@ -92,7 +92,7 @@ def create_pr_from_patch(
     }
 
     pr_data = {
-        "title": 'LapoDocs: Update docs from changes in relatd code',
+        "title": 'LapoDocs: Update docs from changes in related code',
         "body": description,
         "head": branch_name,
         "base": "main"
