@@ -9,11 +9,12 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 
 def create_pr_from_patch(
-        repo_path: str,
-        repo_url: str,
-        branch_name: str,
-        description: str,
-        patch: str
+        repo_path: str = None,
+        repo_url: str = None,
+        branch_name: str = None,
+        description: str = None,
+        title: str = None,
+        patch: str = None
 ):
 
     if repo_url is None or patch is None or description is None:
@@ -28,7 +29,7 @@ def create_pr_from_patch(
     owner = owner_repo_match.group(1)
     repo = owner_repo_match.group(2)
 
-    if repo_path is not None or repo_path != "":
+    if repo_path is not None and repo_path != "":
         # check repoPath exists
         if not os.path.exists(repo_path):
             raise ValueError("repoPath does not exist")
@@ -45,12 +46,25 @@ def create_pr_from_patch(
         random_name = os.urandom(16).hex()
         branch_name = f"lapo-docs-{random_name}"
 
+    print("repo_path", repo_path)
+    print("repo_url", repo_url)
+    print("branch_name", branch_name)
+    print("description", description)
+    print("title", title)
+    print("patch", patch)
+
     # store patch in a temporal file
     with tempfile.NamedTemporaryFile("w") as f:
         f.write(patch)
         f.flush()
         print("patch", f.name)
         try:
+            # first checkout to main and pull
+            result = subprocess.run(["git", "checkout", "main"], cwd=repo_path, check=True)
+            print("checkout", result)
+            result = subprocess.run(["git", "pull", "origin", "main"], cwd=repo_path, check=True)
+            print("pull", result)
+
             result = subprocess.run(["git", "checkout", "-b", branch_name], cwd=repo_path, check=True)
             print("checkout", result)
             result = subprocess.run(["git", "apply", "--check", f.name],
@@ -91,12 +105,15 @@ def create_pr_from_patch(
         "Accept": "application/vnd.github.v3+json"
     }
 
+    pr_title = title if title is not None else 'LapoDocs: Update docs from changes in related code'
+
     pr_data = {
-        "title": 'LapoDocs: Update docs from changes in related code',
+        "title": pr_title,
         "body": description,
         "head": branch_name,
         "base": "main"
     }
+    print(pr_data)
 
     response = requests.post(
         f"https://api.github.com/repos/{owner}/{repo}/pulls",

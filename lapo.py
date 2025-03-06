@@ -3,8 +3,8 @@ import docs_search_agent
 import generate_patch_agent
 import git_pr
 from rich import print as rprint
-
 from rag import DEFAULT_PLUGIN_TOOLS_REPO_PATH
+from create_pr_from_patch import create_pr_from_patch
 
 
 def lapo() -> None:
@@ -25,9 +25,16 @@ def lapo() -> None:
     rprint(patch_agent_response)
 
     rprint(patch_agent_response.data)
-    with open("test.patch", "w") as f:
-        print("writing patch to test.patch")
-        f.write(patch_agent_response.data.patch_diff)
+    patch = patch_agent_response.data.patch_diff
+
+    pr_response = create_pr_from_patch(
+        repo_url="https://github.com/grafana/plugin-tools/",
+        description=patch_agent_response.data.reasoning,
+        title=patch_agent_response.data.title,
+        patch=patch,
+    )
+
+    rprint(pr_response)
 
 
 if __name__ == "__main__":

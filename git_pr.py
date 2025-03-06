@@ -101,12 +101,11 @@ def clone_or_update_github_repo(
                 check=True,
             )
 
-        # Fetch main so we can diff against it
-        subprocess.run(
-            ["git", "-C", repo_path, "fetch", "origin", f"{MAIN_BRANCH}:{MAIN_BRANCH}"],
-            stderr=subprocess.STDOUT,
-            check=True,
-        )
+            subprocess.run(
+                ["git", "-C", repo_path, "fetch", "origin", f"{MAIN_BRANCH}"],
+                stderr=subprocess.STDOUT,
+                check=True,
+            )
 
         return repo_path
 
