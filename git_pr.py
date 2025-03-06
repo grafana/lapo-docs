@@ -1,13 +1,8 @@
 import subprocess
-from pydantic import BaseModel
-from typing import List, TypedDict
 import os
 import hashlib
 import re
 from github import Github, Auth
-from pydantic_ai import Agent, RunContext
-from pydantic_ai.models.gemini import GeminiModel
-from rich import print as rprint
 
 DIFF_CONTEXT_SIZE = 32
 MAIN_BRANCH = "main"

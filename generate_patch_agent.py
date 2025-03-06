@@ -43,6 +43,7 @@ class DocumentContent(TypedDict):
     content: str
     exists: bool
 
+
 @dataclass
 class Deps:
     docs_repo_path: str
@@ -93,7 +94,7 @@ async def validate_patch(ctx: RunContext[Deps], patch: str) -> str:
                                     capture_output=True,
                                     text=True,
                                     check=True)
-            print("patch valid")
+            print("patch valid", result)
             return "OK"
         except Exception as e:
             print("error with patch", e.stderr)

@@ -12,6 +12,7 @@ dependencies = [
     "pydantic-ai[logfire]>=0.0.31",
     "vectordb2>=0.1.9",
     "tensorflow-hub>=0.16.1",
+    "requests>=2.32.3",
 ]
 authors = [
 ]
