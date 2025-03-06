@@ -13,12 +13,14 @@ inputs:
   #  default: ''
   anthropic-api-key:
     required: true
+  github-token:
+    required: true
 
 runs:
   using: docker
   image: Dockerfile
   env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    GITHUB_TOKEN: ${{ inputs.github-token }}
     ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
   args:
     - ${{ inputs.pr-url }}

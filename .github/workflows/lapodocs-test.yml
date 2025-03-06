@@ -16,3 +16,4 @@ jobs:
         with:
           pr-url: ${{ github.event.inputs.pr-url }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
