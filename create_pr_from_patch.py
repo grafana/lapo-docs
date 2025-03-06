@@ -140,6 +140,19 @@ def create_pr_from_patch(
         raise ValueError(f"Failed to create PR: {response.status_code} - {response.text}")
 
     pr_info = response.json()
+
+    # Add labels to the PR
+    pr_number = pr_info["number"]
+    labels_data = {"labels": ["lapo-docs", "type-docs", "no-changelog"]}
+    label_response = requests.post(
+        f"https://api.github.com/repos/{owner}/{repo}/issues/{pr_number}/labels",
+        headers=headers,
+        json=labels_data
+    )
+
+    if label_response.status_code != 200:
+        print(f"Warning: Failed to add labels to PR: {label_response.status_code} - {label_response.text}")
+
     print("PR created:", pr_info["html_url"])
 
     return {"status": "success", "branch": branch_name, "pr_url": pr_info["html_url"]}
