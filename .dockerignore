@@ -1,0 +1,6 @@
+__pycache__
+.data
+.logfire
+.mypy_cache
+.venv
+test.patch
