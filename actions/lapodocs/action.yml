@@ -1,0 +1,25 @@
+name: Lapodocs
+
+inputs:
+  pr-url:
+    description: Full URL of the GitHub pull request with the code changes.
+    required: true
+  #pr-target-repository:
+  #  description: |
+  #    Repository where the docs pull request should be created
+  #    If not provided, no PR will be created and the diff will just be printed.
+  #  type: string
+  #  required: false
+  #  default: ''
+  anthropic-api-key:
+    required: true
+
+runs:
+  using: docker
+  image: Dockerfile
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+  args:
+    - ${{ inputs.pr-url }}
+    # - ${{ inputs.pr-target-repository }}
