@@ -19,7 +19,7 @@ jobs:
       - name: Run Lapodocs
         run: >
           docker run --rm
-          -e GITHUB_TOKEN=$GITHUB_TOKEN
-          -e ANTHROPIC_API=$ANTHROPIC_API
+          -e GITHUB_TOKEN="$GITHUB_TOKEN"
+          -e ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}"
           lapodocs ${{ github.event.inputs.pr-url }}
 
