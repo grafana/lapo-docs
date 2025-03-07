@@ -10,13 +10,13 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 
 def create_pr_from_patch(
-        repo_path: str = None,
-        repo_url: str = None,
-        branch_name: str = None,
-        reasoning: str = None,
-        title: str = None,
-        patch: str = None,
-        triggered_by: str = None
+    repo_path: str | None = None,
+    repo_url: str | None = None,
+    branch_name: str | None = None,
+    reasoning: str | None = None,
+    title: str | None = None,
+    patch: str | None = None,
+    triggered_by: str | None = None
 ):
 
     if repo_url is None or patch is None or reasoning is None:
