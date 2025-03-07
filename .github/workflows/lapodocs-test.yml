@@ -5,6 +5,7 @@ on:
     inputs:
       pr-url:
         required: true
+        default: https://github.com/grafana/grafana-plugin-examples/pull/482
 
 jobs:
   lapodocs:
