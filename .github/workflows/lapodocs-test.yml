@@ -17,7 +17,7 @@ jobs:
       - name: Build Lapodocs Docker image
         run: docker build -t lapodocs .
       - name: Run Lapodocs
-        run: |
+        run: >
           docker run --rm
           -e GITHUB_TOKEN=$GITHUB_TOKEN
           -e ANTHROPIC_API=$ANTHROPIC_API
