@@ -24,7 +24,14 @@ def get_pr_diff_hunk(pr_url: str) -> str:
 
     clone_path = clone_or_update_github_repo(repo.clone_url, pull.head.ref)
     result = subprocess.run(
-        ["git", "-C", clone_path, "diff", f"-U{DIFF_CONTEXT_SIZE}", f"{MAIN_BRANCH}..."],
+        [
+            "git",
+            "-C",
+            clone_path,
+            "diff",
+            f"-U{DIFF_CONTEXT_SIZE}",
+            f"{MAIN_BRANCH}...",
+        ],
         stderr=subprocess.STDOUT,
         stdout=subprocess.PIPE,
         check=True,
@@ -80,6 +87,12 @@ def clone_or_update_github_repo(
                 stderr=subprocess.STDOUT,
                 check=True,
             )
+            # Also fetch main branch for diffing
+            subprocess.run(
+                ["git", "-C", repo_path, "fetch", "origin", f"{MAIN_BRANCH}:{MAIN_BRANCH}"],
+                stderr=subprocess.STDOUT,
+                check=True,
+            )
         else:
             # If repository exists, fetch and reset to origin/branch
             subprocess.run(
@@ -102,7 +115,7 @@ def clone_or_update_github_repo(
             )
 
             subprocess.run(
-                ["git", "-C", repo_path, "fetch", "origin", f"{MAIN_BRANCH}"],
+                ["git", "-C", repo_path, "fetch", "origin", f"{MAIN_BRANCH}:{MAIN_BRANCH}"],
                 stderr=subprocess.STDOUT,
                 check=True,
             )
@@ -115,5 +128,5 @@ def clone_or_update_github_repo(
             import shutil
 
             shutil.rmtree(repo_path)
-        print("error with git cloning", e.stderr if hasattr(e, 'stderr') else str(e))
+        print("error with git cloning", e.stderr if hasattr(e, "stderr") else str(e))
         raise e
