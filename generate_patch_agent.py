@@ -36,6 +36,9 @@ class PullRequestContent(BaseModel):
     patch_diff: str = Field(
         description="The patch diff for the pull request",
     )
+    title: str = Field(
+        description="The title of the pull request",
+    )
 
 
 class DocumentContent(TypedDict):

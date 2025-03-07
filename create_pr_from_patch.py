@@ -1,3 +1,4 @@
+import inspect
 import os
 import subprocess
 import tempfile
@@ -9,14 +10,16 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 
 def create_pr_from_patch(
-        repo_path: str,
-        repo_url: str,
-        branch_name: str,
-        description: str,
-        patch: str
+        repo_path: str = None,
+        repo_url: str = None,
+        branch_name: str = None,
+        reasoning: str = None,
+        title: str = None,
+        patch: str = None,
+        triggered_by: str = None
 ):
 
-    if repo_url is None or patch is None or description is None:
+    if repo_url is None or patch is None or reasoning is None:
         raise ValueError("repoUrl, patch and description must be provided")
 
     # Extract owner and repo name from repo URL
@@ -28,7 +31,7 @@ def create_pr_from_patch(
     owner = owner_repo_match.group(1)
     repo = owner_repo_match.group(2)
 
-    if repo_path is not None or repo_path != "":
+    if repo_path is not None or repo_path == "":
         # check repoPath exists
         if not os.path.exists(repo_path):
             raise ValueError("repoPath does not exist")
@@ -45,12 +48,21 @@ def create_pr_from_patch(
         random_name = os.urandom(16).hex()
         branch_name = f"lapo-docs-{random_name}"
 
+    if triggered_by is None or triggered_by == "":
+        triggered_by = "No information provided"
+
     # store patch in a temporal file
     with tempfile.NamedTemporaryFile("w") as f:
         f.write(patch)
         f.flush()
         print("patch", f.name)
         try:
+            # first checkout to main and pull
+            result = subprocess.run(["git", "checkout", "main"], cwd=repo_path, check=True)
+            print("checkout", result)
+            result = subprocess.run(["git", "pull", "origin", "main"], cwd=repo_path, check=True)
+            print("pull", result)
+
             result = subprocess.run(["git", "checkout", "-b", branch_name], cwd=repo_path, check=True)
             print("checkout", result)
             result = subprocess.run(["git", "apply", "--check", f.name],
@@ -66,7 +78,7 @@ def create_pr_from_patch(
                                     check=True)
             print("patch applied", result)
 
-            result = subprocess.run(["git", "commit", "-a", "-m", description],
+            result = subprocess.run(["git", "commit", "-a", "-m", reasoning],
                                     cwd=repo_path,
                                     capture_output=True,
                                     check=True)
@@ -91,12 +103,32 @@ def create_pr_from_patch(
         "Accept": "application/vnd.github.v3+json"
     }
 
+    pr_title = "LapoDocs: "
+    if title is not None:
+        pr_title += title
+    else:
+        pr_title += "Update docs from changes in related code"
+
+    description = inspect.cleandoc(f"""
+
+        This is an automated pull request created by the [LapoDocs](https://github.com/grafana/llm-auto-update-docs) tool.
+
+        ## Reasoning for the changes:
+
+        {reasoning}
+
+        ## PR that triggered these changes:
+
+        {triggered_by}
+""")
+
     pr_data = {
-        "title": 'LapoDocs: Update docs from changes in related code',
+        "title": pr_title,
         "body": description,
         "head": branch_name,
         "base": "main"
     }
+    print(pr_data)
 
     response = requests.post(
         f"https://api.github.com/repos/{owner}/{repo}/pulls",
@@ -108,6 +140,19 @@ def create_pr_from_patch(
         raise ValueError(f"Failed to create PR: {response.status_code} - {response.text}")
 
     pr_info = response.json()
+
+    # Add labels to the PR
+    pr_number = pr_info["number"]
+    labels_data = {"labels": ["lapo-docs", "type-docs", "no-changelog"]}
+    label_response = requests.post(
+        f"https://api.github.com/repos/{owner}/{repo}/issues/{pr_number}/labels",
+        headers=headers,
+        json=labels_data
+    )
+
+    if label_response.status_code != 200:
+        print(f"Warning: Failed to add labels to PR: {label_response.status_code} - {label_response.text}")
+
     print("PR created:", pr_info["html_url"])
 
     return {"status": "success", "branch": branch_name, "pr_url": pr_info["html_url"]}
