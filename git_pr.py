@@ -115,4 +115,5 @@ def clone_or_update_github_repo(
             import shutil
 
             shutil.rmtree(repo_path)
+        print("error with git cloning", e.stderr if hasattr(e, 'stderr') else str(e))
         raise e
