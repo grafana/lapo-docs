@@ -47,7 +47,7 @@ def lapo(pr_url: str) -> None:
         reasoning=patch_agent_response.data.reasoning,
         title=patch_agent_response.data.title,
         patch=patch,
-        triggered_by=pr_link,
+        triggered_by=pr_url,
     )
 
     rprint(pr_response)
