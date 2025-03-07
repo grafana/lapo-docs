@@ -12,9 +12,14 @@ jobs:
     name: Lapodocs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: ./actions/lapodocs
-        with:
-          pr-url: ${{ github.event.inputs.pr-url }}
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build Lapodocs Docker image
+        run: docker build -t lapodocs .
+      - name: Run Lapodocs
+        run: |
+          docker run --rm
+          -e GITHUB_TOKEN=$GITHUB_TOKEN
+          -e ANTHROPIC_API=$ANTHROPIC_API
+          lapodocs ${{ github.event.inputs.pr-url }}
+
