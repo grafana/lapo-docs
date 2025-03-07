@@ -10,7 +10,7 @@ on:
 jobs:
   lapodocs:
     name: Lapodocs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-8-cores
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
       - name: Run Lapodocs
         run: >
           docker run --rm
-          -e GITHUB_TOKEN="$GITHUB_TOKEN"
+          -e GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}"
           -e ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}"
           lapodocs ${{ github.event.inputs.pr-url }}
 
