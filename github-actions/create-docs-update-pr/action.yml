@@ -19,16 +19,38 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: "Checkout Repository"
-      uses: actions/checkout@v3
-      with:
-        token: ${{ inputs.token }}
-        repository: grafana/llm-auto-update-docs
-        path: llm-auto-update-docs
+    - name: Get latest workflow run ID
+      id: get-run-id
+      run: |
+        RUN_ID=$(gh api repos/${{ github.repository }}/actions/workflows/${{ inputs.embeddings-action }}/runs \
+          --jq '.workflow_runs[] | select(.conclusion == "success") | .id' \
+          | head -n 1)
+        echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+      env:
+        GH_TOKEN: ${{ inputs.token }}
 
-    - name: "Checkout Repository"
-      uses: actions/checkout@v3
+    - name: Download artifact
+      uses: actions/download-artifact@v4
       with:
-        token: ${{ inputs.token }}
-        repository: ${{ github.repository }}
-        path: target-repo
+        name: lapo-embeddings
+        run-id: ${{ steps.get-run-id.outputs.run_id }}
+        github-token: ${{ inputs.token }}
+        path: embeddings
+
+    - name: List files
+      run: |
+        ls embeddings
+      shell: bash
+    # - name: "Checkout Repository"
+    #   uses: actions/checkout@v3
+    #   with:
+    #     token: ${{ inputs.token }}
+    #     repository: grafana/llm-auto-update-docs
+    #     path: llm-auto-update-docs
+    #
+    # - name: "Checkout Repository"
+    #   uses: actions/checkout@v3
+    #   with:
+    #     token: ${{ inputs.token }}
+    #     repository: ${{ github.repository }}
+    #     path: target-repo
