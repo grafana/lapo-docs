@@ -67,12 +67,19 @@ def create_pr_from_patch(
         f.flush()
         logger.info(f"patch {f.name}")
         try:
+
             logger.info(f"repo_path {repo_path}")
             # first checkout to main and pull
             result = subprocess.run(["git", "checkout", "main"], cwd=repo_path, check=True)
             logger.info(f"checkout {result}")
             result = subprocess.run(["git", "pull", "origin", "main"], cwd=repo_path, check=True)
             logger.info(f"pull {result}")
+
+            # configure git
+            result = subprocess.run(["git", "config", "--global", "user.email", "lapodocs@grafana.com"], check=True)
+            logger.info(f"config {result}")
+            result = subprocess.run(["git", "config", "--global", "user.name", "Lapo Docs"], check=True)
+            logger.info(f"config {result}")
 
             result = subprocess.run(["git", "checkout", "-b", branch_name], cwd=repo_path, check=True)
             logger.info(f"checkout {result}")
