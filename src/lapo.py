@@ -31,11 +31,15 @@ def lapo(docs_repo: str, docs_path: str, source_change_pr: str) -> None:
     logger.info(f"Processing PR: {pr_link}")
 
     logger.info("Cloning repository")
-    repository_clone_path = clone_or_update_github_repo("https://github.com/" + docs_repo, "main")
+    repository_clone_path = clone_or_update_github_repo("https://github.com/" + docs_repo)
     logger.info("Cloned repository")
 
     pr_diff_hunk = git_pr.get_pr_diff_hunk(pr_link)
     logger.info("Got PR diff hunk")
+
+    if re.sub(r"\s+", "", pr_diff_hunk) == "":
+        logger.info("No changes detected")
+        exit(0)
 
     logger.info("Running docs search agent")
     docs_search_response = docs_search_agent.agent.run_sync(

@@ -41,7 +41,7 @@ def create_pr_from_patch(
             raise ValueError("repoPath is not a git repo")
     else:
         try:
-            repo_path = clone_or_update_github_repo(repo_url, "main")
+            repo_path = clone_or_update_github_repo(repo_url)
         except Exception as e:
             raise ValueError(f"Failed to clone repo {repo_url}: {e}")
 
