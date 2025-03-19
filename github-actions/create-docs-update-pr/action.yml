@@ -26,6 +26,7 @@ runs:
           --jq '.workflow_runs[] | select(.conclusion == "success") | .id' \
           | head -n 1)
         echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+      shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
 
