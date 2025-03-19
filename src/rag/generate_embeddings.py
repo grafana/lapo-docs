@@ -82,8 +82,9 @@ def get_documents(repo_path: str, docs_path: str) -> rag.Documents:
             if not file.endswith(".md"):
                 continue
             fn = os.path.join(root, file)
+            relative_file_name = os.path.relpath(fn, repo_path)
             with open(fn, "r") as f:
-                documents[fn] = f.read()
+                documents[relative_file_name] = f.read()
     return documents
 
 
