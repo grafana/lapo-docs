@@ -70,7 +70,7 @@ def clone_or_update_github_repo(
                 [
                     "git",
                     "clone",
-                    # "--depth=1",
+                    "--depth=1",
                     "--branch",
                     branch,
                     github_url,

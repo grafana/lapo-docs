@@ -11,7 +11,7 @@ from src.functions.git_pr import clone_or_update_github_repo
 
 # Configure once at program start
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[logging.StreamHandler()],
 )

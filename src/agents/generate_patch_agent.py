@@ -104,7 +104,7 @@ generate_patch_agent = Agent(
 
 @generate_patch_agent.tool(retries=5)
 async def get_document(ctx: RunContext[Deps], file_name: str) -> DocumentContent:
-    logger.debug(f"get_document {file_name}")
+    logger.info(f"get_document {file_name}")
     file_path = os.path.join(ctx.deps.docs_repo_path, file_name)
     if not os.path.exists(file_path):
         return {"file_path": file_name, "content": "", "exists": False}

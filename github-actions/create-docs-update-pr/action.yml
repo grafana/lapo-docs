@@ -84,9 +84,9 @@ runs:
     - name: Run lapo docs
       run: |
         uv run lapo.py \
-          --docs-path ${{ inputs.docs-path }} \
-          --docs-repo ${{ github.repository }} \
-          --source-change-pr ${{ inputs.source-change-pr }}
+          --docs-path "${{ inputs.docs-path }}" \
+          --docs-repo "${{ github.repository }}" \
+          --source-change-pr "${{ inputs.source-change-pr }}"
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
