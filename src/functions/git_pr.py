@@ -1,6 +1,7 @@
 import subprocess
 import os
 import hashlib
+import requests
 import re
 from github import Github, Auth
 import logging
@@ -12,30 +13,30 @@ MAIN_BRANCH = "main"
 
 
 def get_pr_diff_hunk(pr_url: str) -> str:
-    """Get PR changes from GitHub API"""
+    """Get PR changes directly from GitHub PR patch URL"""
     match = re.search(r"github.com/(.+)/(.+)/pull/(\d+)", pr_url)
     if not match:
         raise ValueError("Invalid PR URL")
 
     owner, repo_name, pr_number = match.groups()
-    tok = os.getenv("GITHUB_TOKEN")
-    if tok is None:
-        raise ValueError("GITHUB_TOKEN environment variable not set")
-    g = Github(auth=Auth.Token(tok))
-    repo = g.get_repo(f"{owner}/{repo_name}")
-    pull = repo.get_pull(int(pr_number))
 
-    clone_path = clone_or_update_github_repo(repo.clone_url, [pull.head.ref, MAIN_BRANCH])
-    logger.info(f"Cloned repository to {clone_path} for branch {pull.head.ref}")
-    logger.info("Getting PR diff hunk")
-    result = subprocess.run(
-        ["git", "-C", clone_path, "diff", f"-U{DIFF_CONTEXT_SIZE}", f"{MAIN_BRANCH}...{pull.head.ref}"],
-        stderr=subprocess.STDOUT,
-        stdout=subprocess.PIPE,
-        check=True,
-    )
-    # curious name but apparently that's how it's called
-    hunk = result.stdout.decode()
+    # Construct the patch URL
+    patch_url = f"https://github.com/{owner}/{repo_name}/pull/{pr_number}.patch"
+
+    # Use requests to fetch the patch
+    token = os.getenv("GITHUB_TOKEN")
+    if token is None or token == "":
+        raise ValueError("GITHUB_TOKEN environment variable not set")
+
+    headers = {"Authorization": f"token {token}"}
+
+    logger.info(f"Fetching PR patch from {patch_url}")
+    response = requests.get(patch_url, headers=headers)
+    response.raise_for_status()
+
+    # The patch content contains the diff with sufficient context
+    hunk = response.text
+
     return hunk
 
 

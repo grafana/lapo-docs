@@ -27,8 +27,12 @@ def lapo(docs_repo: str, docs_path: str, source_change_pr: str) -> None:
         source_change_pr (str): PR in the format https://github.com/owner/repo/pull/123
 
     """
+
+    logger.info(f"Docs Path: {docs_path}")
+    logger.info(f"Docs Repo: {docs_repo}")
+    logger.info(f"Source Change PR: {source_change_pr}\n\n")
+
     pr_link = source_change_pr
-    logger.info(f"Processing PR: {pr_link}")
 
     logger.info("Cloning repository")
     repository_clone_path = clone_or_update_github_repo("https://github.com/" + docs_repo)
@@ -72,6 +76,7 @@ def lapo(docs_repo: str, docs_path: str, source_change_pr: str) -> None:
     logger.info("Creating PR")
     pr_response = create_pr_from_patch.create_pr_from_patch(
         repo_url=f"https://github.com/{docs_repo}/",
+        repo_path=repository_clone_path,
         reasoning=patch_agent_response.data.reasoning,
         title=patch_agent_response.data.title,
         patch=git_patch,

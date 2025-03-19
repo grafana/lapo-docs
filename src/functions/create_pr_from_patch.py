@@ -20,6 +20,15 @@ def create_pr_from_patch(
     patch: str | None = None,
     triggered_by: str | None = None,
 ):
+
+    logger.info(f"repo_path: {repo_path}")
+    logger.info(f"repo_url: {repo_url}")
+    logger.info(f"branch_name: {branch_name}")
+    logger.info(f"reasoning: {reasoning}")
+    logger.info(f"title: {title}")
+    logger.info(f"patch: {patch}")
+    logger.info(f"triggered_by: {triggered_by}")
+
     if repo_url is None or patch is None or reasoning is None:
         raise ValueError("repoUrl, patch and description must be provided")
 
