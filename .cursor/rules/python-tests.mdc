@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+We use `uv` for package management in python.
+
+To run tests you must use `uv` instead of the python command directly.
+
+Here's an example of how to run a python tests file:
+
+uv run -m pytest tests/tools/search_replace/test_search_replace_validator.py

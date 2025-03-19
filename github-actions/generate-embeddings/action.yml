@@ -1,0 +1,78 @@
+name: "Generate Embeddings"
+description: "Generate Embeddings for documentation in a git repository."
+
+inputs:
+  gemini-api-key:
+    description: "The Gemini key to use Embeddings"
+    required: true
+  token:
+    description: "The GitHub token to use for authentication."
+    required: false
+    default: ${{ github.token }}
+  docs-path:
+    description: "The path to where the docs are located in the repository. Relative to the root of the repository."
+    required: true
+
+outputs:
+  repo-path:
+    description: "The path to the git repository."
+    value: ${{ inputs.repo-path }}
+  artifact-url:
+    description: "The URL of the artifact."
+    value: ${{ steps.upload-embeddings.outputs.artifact-url }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Checkout Repository"
+      uses: actions/checkout@v3
+      with:
+        token: ${{ inputs.token }}
+        repository: grafana/llm-auto-update-docs
+        path: llm-auto-update-docs
+
+    - name: "Checkout Repository"
+      uses: actions/checkout@v3
+      with:
+        token: ${{ inputs.token }}
+        repository: ${{ github.repository }}
+        path: target-repo
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Set up Python
+      run: uv python install
+      shell: bash
+      working-directory: llm-auto-update-docs
+
+    - name: Install dependencies
+      run: uv sync
+      shell: bash
+      working-directory: llm-auto-update-docs
+
+    - name: Generate Embeddings
+      run: uv run src/rag/generate_embeddings.py ../target-repo/${{ inputs.docs-path }}
+      shell: bash
+      working-directory: llm-auto-update-docs
+      env:
+        GEMINI_API_KEY: ${{ inputs.gemini-api-key }}
+
+    - name: List .data files
+      run: ls -la .data
+      shell: bash
+      working-directory: llm-auto-update-docs
+    
+    - uses: actions/upload-artifact@v4
+      id: upload-embeddings
+      with:
+        name: 'lapo-embeddings'
+        path: llm-auto-update-docs/.data/faiss
+        if-no-files-found: error
+        retention-days: 15
+        overwrite: true
+
+    - name: Print artifact url
+      run: echo ${{ steps.upload-embeddings.outputs.artifact-url }}
+      shell: bash
+

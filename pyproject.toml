@@ -1,0 +1,35 @@
+[project]
+name = "llm-auto-update-docs"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+requires-python = "==3.12.*"
+dependencies = [
+    "PyGithub>=2.6.1",
+    "rich>=13.9.4",
+    "pydantic>=2.10.6",
+    "pydantic-ai>=0.0.31",
+    "tensorflow-hub>=0.16.1",
+    "requests>=2.32.3",
+    "google-cloud-aiplatform>=1.84.0",
+    "faiss-cpu>=1.10.0",
+    "numpy>=2.0.2",
+    "google-generativeai>=0.8.4",
+    "langchain>=0.3.20",
+    "langchain-community>=0.3.19",
+    "langchain-google-genai>=2.0.10",
+    "pytest>=8.3.5",
+    "pytest-asyncio>=0.25.3",
+]
+authors = [
+]
+license = {text = "MIT"}
+
+[tool.ruff]
+fix = true
+unsafe-fixes = true
+line-length = 120
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"

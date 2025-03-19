@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- This project uses `uv` to manage dependencies
+- To add dependencies use `uv add [dep]` (instead of `pip install [dep]`)
+- To run files use `uv run [file]` (instead of `python [file]`)

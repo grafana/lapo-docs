@@ -1,0 +1,34 @@
+name: "Generate Embeddings"
+description: "Generate Embeddings for documentation in a git repository."
+
+inputs:
+  gemini-api-key:
+    description: "The Gemini key to use Embeddings"
+    required: true
+  token:
+    description: "The GitHub token to use for authentication."
+    required: false
+    default: ${{ github.token }}
+  docs-path:
+    description: "The path to where the docs are located in the repository. Relative to the root of the repository."
+    required: true
+  embeddings-action:
+    description: "The action that generates the docs Embeddings"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Checkout Repository"
+      uses: actions/checkout@v3
+      with:
+        token: ${{ inputs.token }}
+        repository: grafana/llm-auto-update-docs
+        path: llm-auto-update-docs
+
+    - name: "Checkout Repository"
+      uses: actions/checkout@v3
+      with:
+        token: ${{ inputs.token }}
+        repository: ${{ github.repository }}
+        path: target-repo
