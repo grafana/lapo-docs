@@ -5,6 +5,12 @@ inputs:
   gemini-api-key:
     description: "The Gemini key to use Embeddings"
     required: true
+  anthropic-api-key:
+    description: "The Anthropic key to call claude models"
+    required: true
+  openai-api-key:
+    description: "The OpenAI key to call openai models"
+    required: true
   token:
     description: "The GitHub token to use for authentication."
     required: false
@@ -14,6 +20,9 @@ inputs:
     required: true
   embeddings-action:
     description: "The action that generates the docs Embeddings"
+    required: true
+  source-change-pr:
+    description: "The PR that triggered this action"
     required: true
 
 runs:
@@ -30,28 +39,59 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.token }}
 
+    - name: Fail if no run_id
+      if: ${{ steps.get-run-id.outputs.run_id == '' }}
+      run: |
+        echo "No successful runs found for ${{ inputs.embeddings-action }}"
+        echo "try running ${{ inputs.embeddings-action }} first"
+        exit 1
+      shell: bash
+
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
         name: lapo-embeddings
         run-id: ${{ steps.get-run-id.outputs.run_id }}
         github-token: ${{ inputs.token }}
-        path: embeddings
+        path: faiss
 
-    - name: List files
+    - name: "Checkout lapo docs Repository"
+      uses: actions/checkout@v3
+      with:
+        token: ${{ inputs.token }}
+        repository: grafana/llm-auto-update-docs
+        path: llm-auto-update-docs
+
+    - name: move embeddings into .data/faiss
       run: |
-        ls embeddings
+        mkdir -p llm-auto-update-docs/.data/
+        mv faiss llm-auto-update-docs/.data/
       shell: bash
-    # - name: "Checkout Repository"
-    #   uses: actions/checkout@v3
-    #   with:
-    #     token: ${{ inputs.token }}
-    #     repository: grafana/llm-auto-update-docs
-    #     path: llm-auto-update-docs
-    #
-    # - name: "Checkout Repository"
-    #   uses: actions/checkout@v3
-    #   with:
-    #     token: ${{ inputs.token }}
-    #     repository: ${{ github.repository }}
-    #     path: target-repo
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Set up Python
+      run: uv python install
+      shell: bash
+      working-directory: llm-auto-update-docs
+
+    - name: Install dependencies
+      run: uv sync
+      shell: bash
+      working-directory: llm-auto-update-docs
+
+    - name: Run lapo docs
+      run: |
+        uv run lapo.py \
+          --docs-path ${{ inputs.docs-path }} \
+          --docs-repo ${{ github.repository }} \
+          --source-change-pr ${{ inputs.source-change-pr }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        GEMINI_API_KEY: ${{ inputs.gemini-api-key }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        OPENAI_API_KEY: ${{ inputs.openai-api-key }}
+      working-directory: llm-auto-update-docs
