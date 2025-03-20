@@ -1,0 +1,25 @@
+name: Lapodocs
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr-url:
+        required: true
+        default: https://github.com/grafana/grafana-plugin-examples/pull/482
+
+jobs:
+  lapodocs:
+    name: Lapodocs
+    runs-on: ubuntu-latest-8-cores
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build Lapodocs Docker image
+        run: docker build -t lapodocs .
+      - name: Run Lapodocs
+        run: >
+          docker run --rm
+          -e GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+          -e ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}"
+          lapodocs ${{ github.event.inputs.pr-url }}
+
