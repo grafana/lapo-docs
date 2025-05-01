@@ -25,21 +25,21 @@ runs:
   using: "composite"
   steps:
     - name: "Checkout Repository"
-      uses: actions/checkout@v3
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
       with:
         token: ${{ inputs.token }}
         repository: grafana/llm-auto-update-docs
         path: llm-auto-update-docs
 
     - name: "Checkout Repository"
-      uses: actions/checkout@v3
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
       with:
         token: ${{ inputs.token }}
         repository: ${{ github.repository }}
         path: target-repo
 
     - name: Install uv
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@6b9c6063abd6010835644d4c2e1bef4cf5cd0fca # v6.0.1
 
     - name: Set up Python
       run: uv python install
@@ -52,18 +52,19 @@ runs:
       working-directory: llm-auto-update-docs
 
     - name: Generate Embeddings
-      run: uv run src/rag/generate_embeddings.py ../target-repo/${{ inputs.docs-path }}
+      run: uv run src/rag/generate_embeddings.py ../target-repo/${DOCS_PATH}
       shell: bash
       working-directory: llm-auto-update-docs
       env:
         GEMINI_API_KEY: ${{ inputs.gemini-api-key }}
+        DOCS_PATH: ${{ inputs.docs-path }}
 
     - name: List .data files
       run: ls -la .data
       shell: bash
       working-directory: llm-auto-update-docs
     
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       id: upload-embeddings
       with:
         name: 'lapo-embeddings'
@@ -73,6 +74,8 @@ runs:
         overwrite: true
 
     - name: Print artifact url
-      run: echo ${{ steps.upload-embeddings.outputs.artifact-url }}
+      run: echo ${ARTIFACT_URL}
       shell: bash
+      env:
+        ARTIFACT_URL: ${{ steps.upload-embeddings.outputs.artifact-url }}
 

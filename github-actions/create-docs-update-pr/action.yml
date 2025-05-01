@@ -31,24 +31,27 @@ runs:
     - name: Get latest workflow run ID
       id: get-run-id
       run: |
-        RUN_ID=$(gh api repos/${{ github.repository }}/actions/workflows/${{ inputs.embeddings-action }}/runs \
+        RUN_ID=$(gh api repos/${{ github.repository }}/actions/workflows/${EMBEDDINGS_ACTION}/runs \
           --jq '.workflow_runs[] | select(.conclusion == "success") | .id' \
           | head -n 1)
         echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
+        EMBEDDINGS_ACTION: ${{ inputs.embeddings-action }}
 
     - name: Fail if no run_id
       if: ${{ steps.get-run-id.outputs.run_id == '' }}
       run: |
-        echo "No successful runs found for ${{ inputs.embeddings-action }}"
-        echo "try running ${{ inputs.embeddings-action }} first"
+        echo "No successful runs found for ${EMBEDDINGS_ACTION}"
+        echo "try running ${EMBEDDINGS_ACTION} first"
         exit 1
       shell: bash
+      env:
+        EMBEDDINGS_ACTION: ${{ inputs.embeddings-action }}
 
     - name: Download artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       with:
         name: lapo-embeddings
         run-id: ${{ steps.get-run-id.outputs.run_id }}
@@ -56,11 +59,12 @@ runs:
         path: faiss
 
     - name: "Checkout lapo docs Repository"
-      uses: actions/checkout@v3
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
       with:
         token: ${{ inputs.token }}
         repository: grafana/llm-auto-update-docs
         path: llm-auto-update-docs
+        persist-credentials: false
 
     - name: move embeddings into .data/faiss
       run: |
@@ -69,7 +73,7 @@ runs:
       shell: bash
     
     - name: Install uv
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@6b9c6063abd6010835644d4c2e1bef4cf5cd0fca # v6.0.1
 
     - name: Set up Python
       run: uv python install
@@ -84,9 +88,9 @@ runs:
     - name: Run lapo docs
       run: |
         uv run lapo.py \
-          --docs-path "${{ inputs.docs-path }}" \
-          --docs-repo "${{ github.repository }}" \
-          --source-change-pr "${{ inputs.source-change-pr }}"
+          --docs-path "${DOCS_PATH}" \
+          --docs-repo "${DOCS_REPO}" \
+          --source-change-pr "${SOURCE_CHANGE_PR}"
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
@@ -94,4 +98,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.token }}
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         OPENAI_API_KEY: ${{ inputs.openai-api-key }}
+        DOCS_PATH: ${{ inputs.docs-path }}
+        DOCS_REPO: ${{ github.repository }}
+        SOURCE_CHANGE_PR: ${{ inputs.source-change-pr }}
       working-directory: llm-auto-update-docs
